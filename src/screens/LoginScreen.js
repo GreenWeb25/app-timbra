@@ -79,7 +79,7 @@ export default function LoginScreen({ navigation }) {
             const { data, error } = await supabase.auth.signInWithOAuth({
                 provider: 'google',
                 options: {
-                    redirectTo: appRedirectUri,
+                    redirectTo: "https://timbratura-app.vercel.app",
                     skipBrowserRedirect: true,
                 },
             });
