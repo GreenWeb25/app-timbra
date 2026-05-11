@@ -3,10 +3,21 @@
     "name": "timbratura-app",
     "slug": "timbratura-app",
     "version": "1.0.0",
+    "scheme": "timbratura-app",
+    "plugins": [
+      [
+        "expo-build-properties",
+        {
+          "ios": {
+            "useFrameworks": "static"
+          }
+        }
+      ]
+    ],
     "extra": {
-      "supabaseUrl": "https://TUO-ID.supabase.co",
-      "supabaseAnonKey": "TUA-CHIAVE-ANON",
-      "redirectUrl": "https://timbratura-app.vercel.app"
+      "supabaseUrl": "https://liqwbxjfmoajdfewlfuf.supabase.co",
+      "supabaseAnonKey": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...",
+      "redirectUrl": "timbratura-app://auth-callback"
     }
   }
 }
