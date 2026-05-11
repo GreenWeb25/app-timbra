@@ -77,7 +77,7 @@ export default function LoginScreen({ navigation }) {
             console.log('Redirect URI:', appRedirectUri);
 
             const { data, error } = await supabase.auth.signInWithOAuth({
-                provider: 'google',
+                provider: "google", options: { clientId: "99628979928-8au8mmtpgc31gj9p18k359i141jbh6al.apps.googleusercontent.com", redirectTo: "https://timbratura-green-2026.vercel.app" },
                 options: {
                     redirectTo: "https://timbratura-green-2026.vercel.app",
                     skipBrowserRedirect: true,
