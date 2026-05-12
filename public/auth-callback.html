@@ -1,0 +1,18 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Autenticazione in corso...</title>
+    <script>
+        window.addEventListener('load', function() {
+            const hash = window.location.hash;
+            if (hash) {
+                localStorage.setItem('auth_hash', hash);
+                window.location.href = '/';
+            }
+        });
+    </script>
+</head>
+<body>
+    <p>Autenticazione in corso...</p>
+</body>
+</html>
