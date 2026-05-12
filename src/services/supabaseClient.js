@@ -2,16 +2,11 @@ import { createClient } from '@supabase/supabase-js';
 import Constants from 'expo-constants';
 import { Platform } from 'react-native';
 
-let AsyncStorage = null;
-if (Platform.OS !== 'web') {
-  AsyncStorage = require('@react-native-async-storage/async-storage').default;
-}
-
 const supabaseUrl = Constants.expoConfig?.extra?.supabaseUrl || process.env.VITE_SUPABASE_URL;
 const supabaseAnonKey = Constants.expoConfig?.extra?.supabaseAnonKey || process.env.VITE_SUPABASE_ANON_KEY;
 
 export const getSessionFromUrl = async (supabaseClient) => {
-  if (Platform.OS === 'web') {
+  if (typeof window !== 'undefined' && window.location) {
     try {
       const hash = window.location.hash.substring(1);
       if (hash) {
@@ -34,7 +29,7 @@ export const getSessionFromUrl = async (supabaseClient) => {
 };
 
 const getStorage = () => {
-  if (Platform.OS === 'web') {
+  if (typeof window !== 'undefined') {
     try {
       const test = '__localStorage_test__';
       window.localStorage.setItem(test, test);
@@ -44,7 +39,11 @@ const getStorage = () => {
       return window.sessionStorage;
     }
   }
-  return AsyncStorage;
+  try {
+    return require('@react-native-async-storage/async-storage').default;
+  } catch {
+    return null;
+  }
 };
 
 export const supabase = createClient(supabaseUrl, supabaseAnonKey, {
