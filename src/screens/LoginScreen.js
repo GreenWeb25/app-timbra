@@ -29,11 +29,12 @@ const LoginScreen = ({ navigation }) => {
     const handleGoogleLogin = async () => {
         setLoading(true);
         try {
-            const redirectUrl = 'https://webapp-timbra.netlify.app/auth-callback';
-            console.log('FORCE Redirect URL:', redirectUrl);
             const { data, error } = await supabase.auth.signInWithOAuth({
                 provider: 'google',
-                options: { redirectTo: redirectUrl },
+                options: { 
+                    redirectTo: 'https://webapp-timbra.netlify.app/auth-callback',
+                    skipBrowserRedirect: false,
+                },
             });
             if (error) alert('Errore: ' + error.message);
         } catch (error) {
