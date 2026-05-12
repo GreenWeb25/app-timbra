@@ -1,13 +1,13 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, TouchableOpacity, StyleSheet, ActivityIndicator, SafeAreaView } from 'react-native';
+import { Platform, View, Text, TouchableOpacity, StyleSheet, ActivityIndicator, SafeAreaView } from 'react-native';
 import * as WebBrowser from 'expo-web-browser';
 import * as Linking from 'expo-linking';
 import Constants from 'expo-constants';
-import { supabase } from '../services/supabaseClient';
+import { Platform, supabase } from '../services/supabaseClient';
 
 WebBrowser.maybeCompleteAuthSession();
 
-const redirectUrl = Linking.createURL('auth-callback');
+const redirectUrl = Platform.OS === 'web' ? window.location.origin : Linking.createURL('auth-callback');
 
 const LoginScreen = ({ navigation }) => {
     const [loading, setLoading] = useState(false);
