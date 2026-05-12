@@ -1,7 +1,11 @@
 import { createClient } from '@supabase/supabase-js';
 import Constants from 'expo-constants';
 import { Platform } from 'react-native';
-import AsyncStorage from '@react-native-async-storage/async-storage';
+
+let AsyncStorage = null;
+if (Platform.OS !== 'web') {
+  AsyncStorage = require('@react-native-async-storage/async-storage').default;
+}
 
 const supabaseUrl = Constants.expoConfig?.extra?.supabaseUrl || process.env.VITE_SUPABASE_URL;
 const supabaseAnonKey = Constants.expoConfig?.extra?.supabaseAnonKey || process.env.VITE_SUPABASE_ANON_KEY;
@@ -35,10 +39,8 @@ const getStorage = () => {
       const test = '__localStorage_test__';
       window.localStorage.setItem(test, test);
       window.localStorage.removeItem(test);
-      console.log('localStorage disponibile');
       return window.localStorage;
     } catch {
-      console.warn('Safari Private Browsing - usando sessionStorage');
       return window.sessionStorage;
     }
   }
