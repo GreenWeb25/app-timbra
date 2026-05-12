@@ -14,15 +14,17 @@ export const getSessionFromUrl = async (supabaseClient) => {
         const params = new URLSearchParams(hash);
         const accessToken = params.get('access_token');
         if (accessToken) {
+          console.log('Token trovato nel frammento URL');
           const { data, error } = await supabaseClient.auth.setSession({
             access_token: accessToken,
             refresh_token: params.get('refresh_token'),
           });
+          if (error) console.error('Errore nel settare la sessione:', error);
           return { data, error };
         }
       }
     } catch (err) {
-      console.error('Errore parsing sessione:', err);
+      console.error('Errore nel parsing della sessione:', err);
     }
   }
 };
@@ -33,8 +35,10 @@ const getStorage = () => {
       const test = '__localStorage_test__';
       window.localStorage.setItem(test, test);
       window.localStorage.removeItem(test);
+      console.log('localStorage disponibile');
       return window.localStorage;
     } catch {
+      console.warn('Safari Private Browsing - usando sessionStorage');
       return window.sessionStorage;
     }
   }
