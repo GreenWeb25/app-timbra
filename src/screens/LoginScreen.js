@@ -1,10 +1,6 @@
 import React, { useState, useEffect } from 'react';
-import { Platform, View, Text, TouchableOpacity, StyleSheet, ActivityIndicator, SafeAreaView } from 'react-native';
-import * as WebBrowser from 'expo-web-browser';
-import * as Linking from 'expo-linking';
+import { View, Text, TouchableOpacity, StyleSheet, ActivityIndicator, SafeAreaView } from 'react-native';
 import { supabase, getSessionFromUrl } from '../services/supabaseClient';
-
-WebBrowser.maybeCompleteAuthSession();
 
 const LoginScreen = ({ navigation }) => {
     const [loading, setLoading] = useState(false);
@@ -13,7 +9,6 @@ const LoginScreen = ({ navigation }) => {
     useEffect(() => {
         const initAuth = async () => {
             try {
-                console.log('Platform.OS:', Platform.OS);
                 await getSessionFromUrl(supabase);
                 const { data: { session } } = await supabase.auth.getSession();
                 if (session?.user) navigation.replace('Home');
@@ -34,19 +29,13 @@ const LoginScreen = ({ navigation }) => {
     const handleGoogleLogin = async () => {
         setLoading(true);
         try {
-            const isWeb = typeof window !== 'undefined' && window.location;
-            console.log('isWeb:', isWeb);
-            const redirectUrl = isWeb ? `${window.location.origin}/auth-callback` : Linking.createURL('auth-callback');
-            console.log('Redirect URL:', redirectUrl);
+            const redirectUrl = 'https://webapp-timbra.netlify.app/auth-callback';
+            console.log('FORCE Redirect URL:', redirectUrl);
             const { data, error } = await supabase.auth.signInWithOAuth({
                 provider: 'google',
-                options: { redirectTo: redirectUrl, skipBrowserRedirect: !isWeb },
+                options: { redirectTo: redirectUrl },
             });
             if (error) alert('Errore: ' + error.message);
-            else if (!isWeb && data?.url) {
-                const result = await WebBrowser.openAuthSessionAsync(data.url, redirectUrl);
-                if (result.type === 'success') await getSessionFromUrl(supabase);
-            }
         } catch (error) {
             alert('Errore: ' + error.message);
         } finally {
