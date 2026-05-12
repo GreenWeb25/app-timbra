@@ -1,22 +1,17 @@
 import { createClient } from '@supabase/supabase-js';
+import Constants from 'expo-constants';
+import { Platform } from 'react-native';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
-const supabaseUrl = process.env.VITE_SUPABASE_URL;
-const supabaseAnonKey = process.env.VITE_SUPABASE_ANON_KEY;
+const supabaseUrl = Constants.expoConfig?.extra?.supabaseUrl || process.env.VITE_SUPABASE_URL;
+const supabaseAnonKey = Constants.expoConfig?.extra?.supabaseAnonKey || process.env.VITE_SUPABASE_ANON_KEY;
 
-export const supabase = createClient(supabaseUrl, supabaseAnonKey);
-
-export const getSessionFromUrl = async () => {
-  if (typeof window !== 'undefined') {
-    const hash = window.location.hash.substring(1);
-    if (hash) {
-      const params = new URLSearchParams(hash);
-      const access_token = params.get('access_token');
-      if (access_token) {
-        await supabase.auth.setSession({
-          access_token,
-          refresh_token: params.get('refresh_token'),
-        });
-      }
-    }
-  }
-};
+export const supabase = createClient(supabaseUrl, supabaseAnonKey, {
+  auth: {
+    // Se è Web usa localStorage (standard browser), altrimenti AsyncStorage (mobile)
+    storage: Platform.OS === 'web' ? window.localStorage : AsyncStorage,
+    autoRefreshToken: true,
+    persistSession: true,
+    detectSessionInUrl: true,
+  },
+});
