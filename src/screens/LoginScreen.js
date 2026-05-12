@@ -29,13 +29,16 @@ const LoginScreen = ({ navigation }) => {
     const handleGoogleLogin = async () => {
         setLoading(true);
         try {
-            const { data, error } = await supabase.auth.signInWithOAuth({
+            const { data: { url }, error } = await supabase.auth.signInWithOAuth({
                 provider: 'google',
                 options: { 
                     redirectTo: 'https://webapp-timbra.netlify.app/auth-callback',
-                    skipBrowserRedirect: false,
                 },
             });
+            console.log('OAuth URL:', url);
+            if (url) {
+                window.location.href = url;
+            }
             if (error) alert('Errore: ' + error.message);
         } catch (error) {
             alert('Errore: ' + error.message);
