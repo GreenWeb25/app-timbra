@@ -29,7 +29,7 @@ export const getSessionFromUrl = async (supabaseClient) => {
 };
 
 const getStorage = () => {
-  if (typeof window !== 'undefined') {
+  if (typeof window !== 'undefined' && window.localStorage) {
     try {
       const test = '__localStorage_test__';
       window.localStorage.setItem(test, test);
@@ -39,16 +39,12 @@ const getStorage = () => {
       return window.sessionStorage;
     }
   }
-  try {
-    return require('@react-native-async-storage/async-storage').default;
-  } catch {
-    return null;
-  }
+  return null;
 };
 
 export const supabase = createClient(supabaseUrl, supabaseAnonKey, {
   auth: {
-    storage: getStorage(),
+    storage: Platform.OS === 'web' ? getStorage() : null,
     autoRefreshToken: true,
     persistSession: true,
     detectSessionInUrl: true,
