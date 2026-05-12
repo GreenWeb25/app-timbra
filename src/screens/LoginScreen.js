@@ -3,37 +3,62 @@ import { Platform, View, Text, TouchableOpacity, StyleSheet, ActivityIndicator, 
 import * as WebBrowser from 'expo-web-browser';
 import * as Linking from 'expo-linking';
 import Constants from 'expo-constants';
-import { Platform, supabase } from '../services/supabaseClient';
+import { supabase, getSessionFromUrl } from '../services/supabaseClient';
 
 WebBrowser.maybeCompleteAuthSession();
-
-const redirectUrl = Platform.OS === 'web' ? window.location.origin : Linking.createURL('auth-callback');
 
 const LoginScreen = ({ navigation }) => {
     const [loading, setLoading] = useState(false);
     const [sessionLoading, setSessionLoading] = useState(true);
 
     useEffect(() => {
-        const checkSession = async () => {
+        const initAuth = async () => {
             try {
-                const { data: { session } } = await supabase.auth.getSession();
-                if (session?.user) {
-                    navigation.replace('Home');
+                // 🔧 DIAGNOSTICA
+                console.log('📱 Platform:', Platform.OS);
+                console.log('🔗 URL:', Platform.OS === 'web' ? window.location.href : 'Mobile');
+                
+                if (Platform.OS === 'web') {
+                    console.log('📦 LocalStorage chiavi:', Object.keys(window.localStorage));
+                    console.log('🔍 Hash URL:', window.location.hash);
                 }
-            } catch (error) {
-                console.error('Errore verifica sessione:', error);
-            } finally {
+
+                // 1️⃣ Prova a estrarre token dal frammento URL (Safari fix)
+                await getSessionFromUrl(supabase);
+
+                // 2️⃣ Verifica sessione persistente
+                const { data: { session }, error } = await supabase.auth.getSession();
+                
+                if (error) {
+                    console.error('❌ Errore nel recupero sessione:', error);
+                }
+
+                if (session?.user) {
+                    console.log('✅ Sessione trovata - Redirect a Home');
+                    navigation.replace('Home');
+                } else {
+                    console.log('🔄 Nessuna sessione - Mostra Login');
+                    setSessionLoading(false);
+                }
+            } catch (err) {
+                console.error('🚨 Errore inizializzazione auth:', err);
                 setSessionLoading(false);
             }
         };
 
-        checkSession();
+        initAuth();
 
         // Listener per i cambiamenti di autenticazione
         const { data: { subscription } } = supabase.auth.onAuthStateChange(
             async (event, session) => {
+                console.log('🔔 Auth state changed:', event);
+                
                 if (event === 'SIGNED_IN' && session?.user) {
+                    console.log('✅ Utente loggato:', session.user.email);
                     navigation.replace('Home');
+                } else if (event === 'SIGNED_OUT') {
+                    console.log('👋 Utente disconnesso');
+                    setSessionLoading(false);
                 }
             }
         );
@@ -46,19 +71,50 @@ const LoginScreen = ({ navigation }) => {
     const handleGoogleLogin = async () => {
         setLoading(true);
         try {
+            // Calcola il redirect URL dinamico
+            const redirectUrl = Platform.OS === 'web' 
+                ? `${window.location.origin}/auth-callback`
+                : Linking.createURL('auth-callback');
+
+            console.log('🔗 Redirect URL:', redirectUrl);
+
             const { data, error } = await supabase.auth.signInWithOAuth({
                 provider: 'google',
                 options: {
                     redirectTo: redirectUrl,
+                    skipBrowserRedirect: Platform.OS !== 'web',
                 },
             });
 
             if (error) {
-                console.error('Errore OAuth:', error);
+                console.error('❌ Errore OAuth:', error);
                 alert('Errore di accesso: ' + error.message);
             }
+
+            // Web: il browser gestisce il redirect automaticamente
+            if (Platform.OS === 'web') {
+                console.log('🌐 Web - Redirect gestito dal browser');
+            } else {
+                // Mobile: usa WebBrowser per completare l'autenticazione
+                if (data?.url) {
+                    const result = await WebBrowser.openAuthSessionAsync(
+                        data.url,
+                        redirectUrl
+                    );
+                    
+                    if (result.type === 'success') {
+                        console.log('📱 Mobile OAuth Success');
+                        // Estrai il token dal frammento URL
+                        const url = result.url;
+                        const hash = url.split('#')[1];
+                        if (hash) {
+                            await getSessionFromUrl(supabase);
+                        }
+                    }
+                }
+            }
         } catch (error) {
-            console.error('Errore login:', error);
+            console.error('🚨 Errore login:', error);
             alert('Errore: ' + error.message);
         } finally {
             setLoading(false);
